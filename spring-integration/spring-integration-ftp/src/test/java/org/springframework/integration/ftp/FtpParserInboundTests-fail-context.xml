@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:ftp="http://www.springframework.org/schema/integration/ftp"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:ftps="http://www.springframework.org/schema/integration/ftps"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	    http://www.springframework.org/schema/integration/ftps http://www.springframework.org/schema/integration/ftp/spring-integration-ftps.xsd
+        http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration.xsd
+       http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="oleg"/>
+		<property name="password" value="password"/>
+		<property name="clientMode" value="0"/>
+		<property name="fileType" value="2"/>
+	</bean>
+
+	<ftp:inbound-channel-adapter id="adapterFtpDontAutoCreate" 
+								 channel="ftpIn"
+								 session-factory="ftpSessionFactory"
+								 filter="filter" 
+								 local-directory="file:target/bar"
+								 remote-directory="foo/bar"
+								 auto-create-local-directory="false"
+								 delete-remote-files="false">
+		<int:poller fixed-rate="1000"/>
+	</ftp:inbound-channel-adapter>
+
+	<bean id="filter" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.entries.EntryListFilter"/>
+	</bean>
+	
+	<int:channel id="ftpIn">
+		<int:queue/>
+	</int:channel>
+
+</beans>

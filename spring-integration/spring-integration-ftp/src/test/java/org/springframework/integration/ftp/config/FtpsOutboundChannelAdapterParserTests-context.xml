@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+
+	<bean id="keyManager" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="javax.net.ssl.KeyManager"/>
+	</bean>
+	<bean id="trustManager" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="javax.net.ssl.TrustManager"/>
+	</bean>
+
+	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpsSessionFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="oleg"/>
+		<property name="password" value="password"/>
+		<property name="clientMode" value="0"/>
+		<property name="fileType" value="2"/>
+		<property name="useClientMode" value="true"/>
+		<property name="cipherSuites" value="a,b.c"/>
+		<property name="keyManager" ref="keyManager"/>
+		<property name="protocol" value="SSL"/>
+		<property name="trustManager" ref="trustManager"/>
+		<property name="prot" value="P"/>
+		<property name="needClientAuth" value="true"/>
+		<property name="authValue" value="oleg"/>
+		<property name="sessionCreation" value="true"/>
+		<property name="protocols" value="SSL, TLS"/>
+		<property name="implicit" value="true"/>
+	</bean>
+	
+	<int-ftp:outbound-channel-adapter id="ftpOutbound"
+				channel="ftpChannel" 
+				session-factory="ftpSessionFactory"
+				charset="UTF-8"
+				remote-directory="foo/bar"
+				remote-filename-generator="fileNameGenerator"/>
+				
+	<int:channel id="ftpChannel"/>
+	
+	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+	</bean>
+
+</beans>

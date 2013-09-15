@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<publish-subscribe-channel id="defaultChannel"/>
+
+	<publish-subscribe-channel id="channelWithIgnoreFailures" ignore-failures="true"/>
+
+	<publish-subscribe-channel id="channelWithApplySequenceEnabled" apply-sequence="true"/>
+
+	<publish-subscribe-channel id="channelWithTaskExecutor" task-executor="pool"/>
+
+	<publish-subscribe-channel id="channelWithIgnoreFailuresAndTaskExecutor" ignore-failures="true" task-executor="pool"/>
+
+	<publish-subscribe-channel id="channelWithApplySequenceEnabledAndTaskExecutor" apply-sequence="true" task-executor="pool"/>
+
+	<publish-subscribe-channel id="channelWithErrorHandler" error-handler="testErrorHandler"/>
+
+	<task:executor id="pool" pool-size="1"/>
+
+	<beans:bean id="testErrorHandler" class="org.springframework.integration.config.TestErrorHandler"/>
+
+</beans:beans>

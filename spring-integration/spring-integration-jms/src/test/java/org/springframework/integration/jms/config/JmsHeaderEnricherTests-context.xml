@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	xmlns:jms="http://www.springframework.org/schema/integration/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/jms
+			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+
+	<jms:header-enricher input-channel="valueTestInput" output-channel="output">
+		<jms:reply-to ref="testDestination"/>
+		<jms:correlation-id value="ABC"/>
+	</jms:header-enricher>
+
+	<jms:header-enricher input-channel="expressionTestInput" output-channel="output">
+		<jms:correlation-id expression="100 + (10 * 2) + 3"/>
+	</jms:header-enricher>
+
+	<bean id="testDestination" class="org.springframework.integration.jms.StubDestination"/>
+
+	<integration:channel id="output">
+		<integration:queue capacity="1"/>
+	</integration:channel>
+
+</beans>

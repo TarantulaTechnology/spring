@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:channel id="input"/>
+	
+	<int:service-activator input-channel="input" output-channel="nextA" expression="'nextA'"/>
+	
+	<int:service-activator input-channel="nextA" output-channel="nextB" expression="'nextB'"/>
+	
+	<int:service-activator input-channel="nextB" output-channel="nextC" expression="'nextC'"/>
+	
+	<int:logging-channel-adapter id="nextC" level="WARN" log-full-message="true"/>
+	
+</beans>

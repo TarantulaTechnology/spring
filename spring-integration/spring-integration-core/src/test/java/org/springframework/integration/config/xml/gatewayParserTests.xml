@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="requestChannel">
+		<queue capacity="100"/>
+	</channel>
+
+	<channel id="replyChannel">
+		<queue capacity="100"/>
+	</channel>
+
+	<gateway id="oneWay"
+	         service-interface="org.springframework.integration.gateway.TestService"
+	         default-request-channel="requestChannel"/>
+
+	<gateway id="solicitResponse"
+	         service-interface="org.springframework.integration.gateway.TestService"
+	         default-reply-channel="replyChannel"
+	         default-reply-timeout="3000"/>
+
+	<gateway id="requestReply"
+	         service-interface="org.springframework.integration.gateway.TestService"
+	         default-request-channel="requestChannel"
+	         default-reply-channel="replyChannel"
+	         default-reply-timeout="5000"/>
+
+	<gateway id="async"
+			 service-interface="org.springframework.integration.gateway.TestService"
+			 default-request-channel="requestChannel"
+			 default-reply-channel="replyChannel"
+			 async-executor="testExecutor"/>
+	
+	<!-- no assertions for this. The fact that this config does not result in error is sufficient -->
+	<gateway default-request-channel="nullChannel"/>
+
+	<beans:bean id="testExecutor" class="org.springframework.integration.config.xml.GatewayParserTests$TestExecutor"/>
+
+</beans:beans>

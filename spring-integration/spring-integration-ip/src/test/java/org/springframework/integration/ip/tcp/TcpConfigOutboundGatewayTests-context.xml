@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:ip="http://www.springframework.org/schema/integration/ip"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/ip
+		http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<import resource="TcpConfigInboundGatewayTests-context.xml" />
+
+	<ip:tcp-outbound-gateway id="tcpOutGateway"
+		connection-factory="crLfClient"
+		request-channel="requestChannel"
+		reply-channel="replyChannel"
+		/>
+
+	<ip:tcp-outbound-gateway id="tcpOutGatewayNio"
+		connection-factory="crLfClientNio"
+		request-channel="requestChannelNio"
+		reply-channel="replyChannel"
+		/>
+
+	<ip:tcp-connection-factory id="crLfServer2"
+							   type="server"
+							   port="#{tcpIpUtils.findAvailableServerSocket(7400)}"
+							   serializer="crLfSerializer"
+							   deserializer="crLfSerializer"/>
+
+	<ip:tcp-connection-factory id="crLfClient2"
+							   type="client"
+							   host="localhost"
+							   port="#{crLfServer2.port}"
+							   serializer="crLfSerializer"
+							   deserializer="crLfSerializer"/>
+
+
+	<int:chain input-channel="tcpOutboundGatewayInsideChain" output-channel="replyChannel">
+		<ip:tcp-outbound-gateway id="tcp-outbound-gateway-within-chain" connection-factory="crLfClient2"/>
+	</int:chain>
+
+	<int:channel id="replyChannel" >
+		<int:queue />
+	</int:channel>
+
+</beans>

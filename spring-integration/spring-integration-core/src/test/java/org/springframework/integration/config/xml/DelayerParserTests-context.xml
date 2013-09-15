@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<channel id="input"/>
+
+	<channel id="output">
+		<queue />
+	</channel>
+
+	<delayer id="delayerWithDefaultScheduler"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="1234"
+			 delay-header-name="foo"
+			 order="99"
+			 send-timeout="987"/>
+
+	<delayer id="delayerWithCustomScheduler"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="0"
+			 scheduler="testScheduler"/>
+
+	<delayer id="delayerWithCustomMessageStore"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="0"
+			 message-store="testMessageStore"/>
+
+	<delayer id="delayerWithTransactional"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="0">
+		<transactional/>
+	</delayer>
+
+	<delayer id="delayerWithAdviceChain"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="0">
+		<advice-chain>
+			<ref bean="testAdviceBean"/>
+			<tx:advice>
+				<tx:attributes>
+					<tx:method name="*" read-only="true" propagation="REQUIRES_NEW"/>
+				</tx:attributes>
+			</tx:advice>
+		</advice-chain>
+	</delayer>
+
+	<delayer id="delayerWithExpression"
+			 input-channel="input"
+			 output-channel="output"
+			 expression="100"
+			 ignore-expression-failures="false"/>
+
+	<beans:bean id="delayerSource"
+		  class="org.springframework.integration.expression.ReloadableResourceBundleExpressionSource"
+		  p:basename="org/springframework/integration/config/xml/delayer-expression"/>
+
+	<delayer id="delayerWithExpressionSubElement"
+			 input-channel="input"
+			 output-channel="output">
+		<expression key="delay" source="delayerSource"/>
+	</delayer>
+
+	<beans:bean id="testScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler"
+				p:poolSize="7"
+				p:waitForTasksToCompleteOnShutdown="true"/>
+
+	<beans:bean id="testMessageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
+
+	<beans:bean id="testAdviceBean" class="org.springframework.integration.config.xml.TestAdviceBean">
+		<beans:constructor-arg value="-1"/>
+	</beans:bean>
+
+	<beans:bean id="transactionManager" class="org.springframework.integration.util.TestTransactionManager"/>
+
+</beans:beans>

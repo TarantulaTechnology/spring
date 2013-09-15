@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="output">
+		<queue capacity="10"/>
+	</channel>
+
+	<splitter id="splitterAdapterWithRefAndMethod"
+			  ref="splitterBean"
+			  method="split"
+	          input-channel="splitterAdapterWithRefAndMethodInput"
+	          output-channel="output"/>
+
+	<splitter id="splitterAdapterWithRefOnly"
+			  ref="splitterBean"
+	          input-channel="splitterAdapterWithRefOnlyInput"
+	          output-channel="output"/>
+
+	<splitter id="splitterImplementation"
+			  ref="splitterImpl"
+	          input-channel="splitterImplementationInput"
+	          output-channel="output"/>
+	          
+	<splitter id="splitterImplementationRequiresReply"
+	          input-channel="requiresReplyInput"
+	          output-channel="output" 
+	          requires-reply="true"/>
+
+	<splitter id="splitterBeanNoSequence"
+			  ref="splitterBean"
+	          input-channel="noSequenceInput"
+	          output-channel="output"
+			  apply-sequence="false"
+	  />
+
+	<beans:bean id="splitterBean" class="org.springframework.integration.router.config.TestSplitterBean"/>
+
+	<beans:bean id="splitterImpl" class="org.springframework.integration.router.config.TestSplitterImpl"/>
+
+</beans:beans>

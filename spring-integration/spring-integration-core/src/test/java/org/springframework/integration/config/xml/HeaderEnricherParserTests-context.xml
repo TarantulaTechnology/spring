@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<header-enricher id="headerEnricherWithDefaults" input-channel="input">
+		<header name="foo" value="bar"/>
+	</header-enricher>
+
+	<header-enricher id="headerEnricherWithSendTimeout" input-channel="input" send-timeout="1234">
+		<header name="foo" value="bar"/>
+	</header-enricher>
+
+	<header-enricher id="headerEnricherWithShouldSkipNullsTrue" input-channel="input" should-skip-nulls="true">
+		<header name="foo" value="bar"/>
+	</header-enricher>
+
+	<header-enricher id="headerEnricherWithShouldSkipNullsFalse" input-channel="input" should-skip-nulls="false">
+		<header name="foo" value="bar"/>
+	</header-enricher>
+	
+	<header-enricher id="headerEnricherWithPriorityAsString" input-channel="input" >
+		<header name="priority" value="1"/>
+	</header-enricher>
+	 
+	<header-enricher id="headerEnricherWithPriorityAsStringAndType" input-channel="input" >
+		<header name="priority" value="1" type="java.lang.Integer"/>
+	</header-enricher>
+
+</beans:beans>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+				
+	<aggregator id="aggregator" ref="adderBean" method="add" release-strategy="testReleaseStrategy"
+		input-channel="input-channel" output-channel="replyChannel">
+	</aggregator>
+
+	<channel id="inputChannel"/>
+	<channel id="replyChannel"/>
+
+	<beans:bean id="adderBean" class="org.springframework.integration.config.Adder"/>
+	
+	<beans:bean id="ReleaseStrategyBean" class="org.springframework.integration.config.TestReleaseStrategy"/>
+
+</beans:beans>

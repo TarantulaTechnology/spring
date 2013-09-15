@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="directInput"/>
+
+	<channel id="queueInput">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="customSerializerInput"/>
+
+	<channel id="output">
+		<queue capacity="1"/>
+	</channel>
+
+	<payload-serializing-transformer input-channel="directInput" output-channel="output"/>
+
+	<payload-serializing-transformer input-channel="queueInput" output-channel="output">
+		<poller fixed-delay="10000"/>
+	</payload-serializing-transformer>
+
+	<payload-serializing-transformer input-channel="customSerializerInput" output-channel="output" serializer="customSerializer"/>
+
+	<beans:bean id="customSerializer" class="org.springframework.integration.config.xml.PayloadSerializingTransformerParserTests$TestSerializer"/>
+
+</beans:beans>

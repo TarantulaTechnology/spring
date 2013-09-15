@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="input">
+		<queue capacity="5" />
+	</channel>
+
+	<aggregator ref="summer" method="sum" input-channel="input" output-channel="output">
+		<poller task-executor="executor" max-messages-per-poll="5" fixed-delay="20" />
+	</aggregator>
+
+	<task:executor id="executor" pool-size="5"/>
+
+	<channel id="output">
+		<queue capacity="5" />
+	</channel>
+	
+	<channel id="discard">
+		<queue capacity="5" />
+	</channel>
+
+	<beans:bean id="summer"
+		class="org.springframework.integration.aggregator.integration.AggregatorIntegrationTests$SummingAggregator" />
+		
+	<aggregator id="expiringAggregator" input-channel="expiringAggregatorInput" output-channel="output" 
+				expire-groups-upon-completion="true" discard-channel="discard"/>
+				
+	<aggregator id="nonExpiringAggregator" input-channel="nonExpiringAggregatorInput" output-channel="output" 
+				expire-groups-upon-completion="false" discard-channel="discard"/>
+		
+
+</beans:beans>

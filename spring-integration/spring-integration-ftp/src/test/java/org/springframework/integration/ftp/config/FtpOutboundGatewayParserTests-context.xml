@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="sf" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory"/>
+	</bean>
+
+	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg ref="sf"/>
+	</bean>
+
+	<int-ftp:outbound-gateway id="gateway1"
+		local-directory="local-test-dir"
+		session-factory="sf"
+		request-channel="inbound1"
+		reply-channel="outbound"
+		reply-timeout="777"
+		auto-create-local-directory="false"
+		auto-startup="false"
+		filename-pattern="*"
+		remote-file-separator="X"
+		command="ls"
+		command-options="-1 -f"
+		expression="payload"
+		order="1"
+		/>
+
+	<int-ftp:outbound-gateway id="gateway2"
+		local-directory="local-test-dir"
+		session-factory="csf"
+		request-channel="inbound2"
+		reply-channel="outbound"
+		auto-create-local-directory="false"
+		auto-startup="false"
+		remote-file-separator="X"
+		command="get"
+		command-options="-P"
+		expression="payload"
+		order="2"
+		requires-reply="false"
+		>
+		<int-ftp:request-handler-advice-chain>
+			<bean class="org.springframework.integration.ftp.config.FtpOutboundGatewayParserTests$FooAdvice" />
+		</int-ftp:request-handler-advice-chain>
+	</int-ftp:outbound-gateway>
+
+	<int-ftp:outbound-gateway id="gateway3"
+		session-factory="sf"
+		request-channel="inbound1"
+		reply-channel="outbound"
+		auto-startup="false"
+		command="mv"
+		expression="payload"
+		rename-expression="'foo'"
+		order="1"
+		/>
+
+	<int-ftp:outbound-gateway id="withBeanExpression"
+		local-directory="local-test-dir"
+		session-factory="sf"
+		request-channel="inbound3"
+		reply-channel="outbound"
+		auto-startup="false"
+		filename-pattern="*"
+		remote-file-separator="X"
+		command="ls"
+		command-options="-1 -f"
+		expression="@fooBean"
+		order="1"
+		/>
+
+	<int:channel id="outbound"/>
+
+	<bean id="fooBean" class="java.lang.String">
+		<constructor-arg value="foo" />
+	</bean>
+
+</beans>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="message-store"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Message Store</title>
+  <para>
+   Enterprise Integration Patterns (EIP) identifies several patterns that have the capability to buffer messages. For example,
+   an <emphasis>Aggregator</emphasis> buffers messages until they can be released and a <emphasis>QueueChannel</emphasis> buffers
+   messages until consumers explicitly receive those messages from that channel.
+   Because of the failures that can occur at any point within your message flow, EIP components that buffer
+   messages also introduce a point where messages could be lost.
+  </para>
+
+  <para>
+  To mitigate the risk of losing Messages, EIP defines the <ulink url="http://eaipatterns.com/MessageStore.html">Message Store</ulink> pattern which allows
+  EIP components to store <emphasis>Messages</emphasis> typically in some type of persistent store (e.g. RDBMS).
+  </para>
+
+  <para>
+  Spring Integration provides support for the <emphasis>Message Store</emphasis> pattern by
+  a) defining a <classname>org.springframework.integration.store.MessageStore</classname> strategy interface,
+  b) providing several implementations of this interface, and
+  c) exposing a <code>message-store</code> attribute on all components that have the capability to buffer messages
+  so that you can inject any instance that implements the <classname>MessageStore</classname> interface.
+  </para>
+
+  <para>Details on how to configure a specific <emphasis>Message Store</emphasis> implementation and/or how to inject
+  a <classname>MessageStore</classname> implementation into a specific buffering component are described
+  throughout the manual (see the specific component, such as <emphasis>QueueChannel</emphasis>, <emphasis>Aggregator</emphasis>,
+  <emphasis>Resequencer</emphasis> etc.), but here are a couple of samples to give you an idea:
+  </para>
+
+  <para>
+  QueueChannel
+  <programlisting language="xml"><![CDATA[<int:channel id="myQueueChannel">
+    <int:queue message-store="refToMessageStore"/>
+<int:channel>]]></programlisting>
+  </para>
+
+  <para>
+  Aggregator
+  <programlisting language="xml"><![CDATA[<int:aggregator … message-store="refToMessageStore"/>]]></programlisting>
+  </para>
+
+  <para>
+  By default <emphasis>Messages</emphasis> are stored in-memory using <classname>org.springframework.integration.store.SimpleMessageStore</classname>,
+  an implementation of <classname>MessageStore</classname>. That might be fine for development or simple low-volume environments where the potential loss
+  of non-persistent messages is not a concern. However, the typical production application will need a more robust option, not only to mitigate the risk of
+  message loss but also to avoid potential out-of-memory errors. Therefore, we also provide MessageStore implementations for a variety of data-stores.
+  Below is a complete list of supported implementations:
+
+      <itemizedlist>
+          <listitem><xref linkend="jdbc-message-store"/> - uses RDBMS to store Messages</listitem>
+          <listitem><xref linkend="redis-message-store"/> - uses Redis key/value datastore to store Messages</listitem>
+          <listitem><xref linkend="mongodb-message-store"/> - uses MongoDB document store to store Messages</listitem>
+          <listitem><xref linkend="gemfire-message-store"/> - uses Gemfire distributed cache to store Messages</listitem>
+      </itemizedlist>
+  </para>
+
+  <para>
+    <important>
+      <para>However be aware of some limitations while using persistent implementations of the <classname>MessageStore</classname>.</para>
+      <para>The Message data (payload and headers) is <emphasis>serialized</emphasis> and <emphasis>deserialized</emphasis>
+         using different serialization strategies depending on the implementation of the <classname>MessageStore</classname>.
+         For example, when using <classname>JdbcMessageStore</classname>, only <classname>Serializable</classname> data is persisted by default.
+         In this case non-Serializable headers are removed before serialization occurs.
+         Also be aware of the protocol specific headers that are injected by transport adapters (e.g., FTP, HTTP, JMS etc.).
+         For example, <literal>&lt;http:inbound-channel-adapter/&gt;</literal> maps HTTP-headers into Message Headers and one of them is an
+         <classname>ArrayList</classname> of non-Serializable <classname>org.springframework.http.MediaType</classname> instances.
+         However you are able to inject your own implementation of the <classname>Serializer</classname> and/or
+         <classname>Deserializer</classname> strategy interfaces into some <classname>MessageStore</classname> implementations
+         (such as JdbcMessageStore) to change the behaviour of serialization and deserialization.
+      </para>
+      <para>
+         Special attention must be paid to the headers that represent certain types of data.
+         For example, if one of the headers contains an instance of some <emphasis>Spring Bean</emphasis>, upon deserialization you may end
+         up with a different instance of that bean,
+         which directly affects some of the implicit headers created by the framework (e.g., REPLY_CHANNEL or ERROR_CHANNEL).
+         Currently they are not serializable, but even if they were the deserialized channel would not represent the expected instance.
+         As a workaround we suggest to remove bean-ref headers via a <literal>&lt;header-filter/&gt;</literal>
+         before sending a message to an endpoint backed by a persistent <classname>MessageStore</classname>.
+         Also, we recommend using channel names instead of channel instances when setting those types of headers,
+         thus allowing it to be resolved in real time by the <classname>ChannelResolver</classname>.
+      </para>
+      <para>
+        Also avoid configuration of a message-flow like this:
+        <emphasis>gateway -&gt; queue-channel (backed by a persistent Message Store) -&gt; service-activator</emphasis>
+        That gateway creates a <emphasis>Temporary Reply Channel</emphasis> in the background, and it will be lost by the time the
+        service-activator's poller reads from the queue, because it has been deserialized by another thread on the sending side.
+      </para>
+      <para>
+         Nevertheless we are constantly thinking about potential improvements to the framework, such as a way to provide some
+         robust default serialization strategy for messages in these cases.
+      </para>
+    </important>
+  </para>
+
+</section>

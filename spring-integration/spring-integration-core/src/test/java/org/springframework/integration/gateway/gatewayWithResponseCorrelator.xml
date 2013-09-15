@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="requestChannel"/>
+
+	<channel id="replyChannel">
+		<queue capacity="100"/>
+		<interceptors>
+			<ref bean="interceptor"/>
+		</interceptors>
+	</channel>
+
+	<service-activator ref="handler" input-channel="requestChannel" output-channel="replyChannel"/>
+
+	<beans:bean id="proxy" class="org.springframework.integration.gateway.GatewayProxyFactoryBean">
+		<beans:property name="serviceInterface" value="org.springframework.integration.gateway.TestService"/>
+		<beans:property name="defaultRequestChannel" ref="requestChannel"/>
+		<beans:property name="defaultReplyChannel" ref="replyChannel"/>
+		<beans:property name="defaultRequestTimeout" value="5000"/>
+		<beans:property name="defaultReplyTimeout" value="5000"/>
+	</beans:bean>
+
+	<beans:bean id="handler" class="org.springframework.integration.gateway.TestHandler"/>
+
+	<beans:bean id="interceptor" class="org.springframework.integration.gateway.TestChannelInterceptor"/>
+
+</beans:beans>

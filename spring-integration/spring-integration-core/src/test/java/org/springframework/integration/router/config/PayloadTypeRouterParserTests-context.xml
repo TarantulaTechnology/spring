@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="channel1">
+		<queue capacity="1" />
+	</channel>
+	<channel id="channel2">
+		<queue capacity="1" />
+	</channel>
+	<channel id="channel3">
+		<queue capacity="1" />
+	</channel>
+	<channel id="channel4">
+		<queue capacity="1" />
+	</channel>
+	
+	<channel id="routingChannel" />
+	<payload-type-router id="routerWithChannelResolver" input-channel="routingChannel" channel-resolver="cr">
+		<mapping type="java.lang.String" channel="channel1" />
+		<mapping type="java.lang.Integer" channel="channel2" />
+		<mapping type="java.lang.Number[]" channel="channel3" />
+		<mapping type="java.lang.Long[]" channel="channel4" />
+	</payload-type-router>
+
+	<gateway id="testService"
+		service-interface="org.springframework.integration.router.config.PayloadTypeRouterParserTests$TestService"
+		default-request-channel="routingChannel" />
+
+	<beans:bean id="cr" class="org.springframework.integration.router.config.PayloadTypeRouterParserTests.MyChannelResolver"/>
+</beans:beans>

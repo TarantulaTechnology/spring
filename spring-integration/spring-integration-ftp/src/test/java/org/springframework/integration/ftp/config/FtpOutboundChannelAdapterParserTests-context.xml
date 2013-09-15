@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+
+	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="oleg"/>
+		<property name="password" value="password"/>
+		<property name="clientMode" value="0"/>
+		<property name="fileType" value="2"/>
+	</bean>
+	
+	<bean id="cachingSessionFactory" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg ref="ftpSessionFactory"/>
+		<constructor-arg value="10"/>
+		<property name="sessionWaitTimeout" value="1000"/>
+	</bean>
+
+	<int-ftp:outbound-channel-adapter id="ftpOutbound"
+				channel="ftpChannel" 
+				session-factory="ftpSessionFactory"
+				remote-directory="foo/bar"
+				temporary-remote-directory="baz/abc"
+				charset="UTF-8"
+				auto-create-directory="false"
+				remote-file-separator=""
+				temporary-file-suffix=".foo"
+				remote-filename-generator="fileNameGenerator"
+				order="23"/>
+				
+	<int-ftp:outbound-channel-adapter id="ftpOutbound2"
+				channel="ftpChannel" 
+				session-factory="cachingSessionFactory"
+				remote-directory="foo/bar"
+				charset="UTF-8"
+				remote-file-separator="."
+				temporary-file-suffix=".foo"
+				remote-filename-generator="fileNameGenerator"
+				order="12"/>
+				
+	<int-ftp:outbound-channel-adapter id="ftpOutbound3"
+				channel="anotherFtpChannel"
+				session-factory="cachingSessionFactory"
+				remote-directory="foo/bar"
+				charset="UTF-8"
+				remote-file-separator="."
+				use-temporary-file-name="false"
+				remote-filename-generator="fileNameGenerator"/>
+
+
+	<int-ftp:outbound-channel-adapter id="simpleAdapter"
+				channel="ftpChannel" 
+				session-factory="cachingSessionFactory"
+				remote-directory="foo/bar"/>
+
+	<int-ftp:outbound-channel-adapter id="advisedAdapter"
+				channel="ftpChannel"
+				session-factory="cachingSessionFactory"
+				remote-directory="foo/bar">
+		<int-ftp:request-handler-advice-chain>
+			<bean class="org.springframework.integration.ftp.config.FtpOutboundChannelAdapterParserTests$FooAdvice" />
+		</int-ftp:request-handler-advice-chain>
+	</int-ftp:outbound-channel-adapter>
+
+	<int:channel id="anotherFtpChannel"/>
+
+	<int:publish-subscribe-channel id="ftpChannel"/>
+
+	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+	</bean>
+
+	<int-ftp:outbound-channel-adapter id="withBeanExpressions"
+		channel="ftpChannel"
+		remote-directory-expression="@fooBean"
+		temporary-remote-directory-expression="@barBean"
+		remote-filename-generator-expression="@bazBean"
+		session-factory="cachingSessionFactory" />
+
+	<bean id="fooBean" class="java.lang.String">
+		<constructor-arg value="foo" />
+	</bean>
+
+	<bean id="barBean" class="java.lang.String">
+		<constructor-arg value="bar" />
+	</bean>
+
+	<bean id="bazBean" class="java.lang.String">
+		<constructor-arg value="baz" />
+	</bean>
+
+</beans>

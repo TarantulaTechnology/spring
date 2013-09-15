@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+	xmlns="http://www.springframework.org/schema/integration/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<si:chain input-channel="httpOutboundChannelAdapterWithinChain">
+		<outbound-channel-adapter url="http://localhost/test1/%2f" encode-uri="false" rest-template="restTemplate"/>
+	</si:chain>
+
+	<beans:bean id="restTemplate" class="org.mockito.Mockito" factory-method="spy">
+		<beans:constructor-arg>
+			<beans:bean class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandlerTests$MockRestTemplate2"/>
+		</beans:constructor-arg>
+	</beans:bean>
+
+	<si:chain input-channel="httpOutboundGatewayWithinChain" output-channel="replyChannel">
+		<outbound-gateway url="http://localhost:51235/%2f/testApps?param={param}"
+						  rest-template="restTemplate"
+						  encode-uri="false"
+						  expected-response-type="java.lang.String">
+			<uri-variable name="param" expression="T(org.apache.commons.httpclient.util.URIUtil).encodeWithinQuery('http Outbound Gateway Within Chain')"/>
+						  </outbound-gateway>
+	</si:chain>
+
+	<si:channel id="replyChannel">
+		<si:queue/>
+	</si:channel>
+
+</beans:beans>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="outputChannel">
+		<queue capacity="5"/>
+	</channel>
+	<channel id="discardChannel">
+		<queue capacity="5"/>
+	</channel>
+
+	<channel id="aggregatorWithReferenceInput"/>
+	<aggregator id="aggregatorWithReference" ref="aggregatorBean"
+				input-channel="aggregatorWithReferenceInput" output-channel="outputChannel"/>
+
+	<channel id="completelyDefinedAggregatorInput"/>
+	<aggregator id="completelyDefinedAggregator"
+		input-channel="completelyDefinedAggregatorInput"
+		output-channel="outputChannel"
+		discard-channel="discardChannel"
+		ref="aggregatorBean"
+		release-strategy="releaseStrategy"
+		correlation-strategy="correlationStrategy"
+		send-timeout="86420000"
+		send-partial-result-on-expiry="true"/>
+
+	<channel id="aggregatorWithExpressionsInput"/>
+	<channel id="aggregatorWithExpressionsOutput"/>
+	<aggregator id="aggregatorWithExpressions"
+		input-channel="aggregatorWithExpressionsInput"
+		output-channel="aggregatorWithExpressionsOutput"
+		expression="?[payload.startsWith('1')].![payload]"
+		release-strategy-expression="#root.size()>2"
+		correlation-strategy-expression="headers['foo']"/>
+
+	<channel id="aggregatorWithReferenceAndMethodInput"/>
+	<aggregator id="aggregatorWithReferenceAndMethod"
+		ref="adderBean"
+		method="add"
+		input-channel="aggregatorWithReferenceAndMethodInput"
+		output-channel="outputChannel"/>
+
+	<channel id="aggregatorWithPojoReleaseStrategyInput"/>
+	<aggregator id="aggregatorWithPojoReleaseStrategy"
+		input-channel="aggregatorWithPojoReleaseStrategyInput"
+		output-channel="outputChannel"
+		ref="adderBean"
+		method="add"
+		release-strategy="pojoReleaseStrategy"
+		release-strategy-method="checkCompletenessAsList"/>
+
+	<channel id="aggregatorWithPojoReleaseStrategyInputAsCollection"/>
+	<aggregator id="aggregatorWithPojoReleaseStrategyAsCollection"
+		input-channel="aggregatorWithPojoReleaseStrategyInputAsCollection"
+		output-channel="outputChannel"
+		ref="adderBean"
+		method="add"
+		release-strategy="pojoReleaseStrategy"
+		release-strategy-method="checkCompletenessAsCollection"/>
+
+	<channel id="aggregatorWithExpressionsAndPojoAggregatorInput"/>
+	<aggregator id="aggregatorWithExpressionsAndPojoAggregator"
+		input-channel="aggregatorWithExpressionsAndPojoAggregatorInput"
+		ref="aggregatorBean"
+		release-strategy-expression="size() == 2"
+		correlation-strategy-expression="headers['foo']"
+		empty-group-min-timeout="60000"/>
+
+	<beans:bean id="aggregatorBean"
+		class="org.springframework.integration.config.TestAggregatorBean" />
+
+	 <beans:bean id="adderBean"
+		class="org.springframework.integration.config.Adder" />
+
+	<beans:bean id="releaseStrategy"
+		class="org.springframework.integration.config.TestReleaseStrategy" />
+
+	<beans:bean id="correlationStrategy" class="org.springframework.integration.config.TestCorrelationStrategy"/>
+
+	<beans:bean id="pojoReleaseStrategy"
+		class="org.springframework.integration.config.MaxValueReleaseStrategy">
+		<beans:constructor-arg value="10" />
+	</beans:bean>
+</beans:beans>

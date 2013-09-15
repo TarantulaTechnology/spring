@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:jms="http://www.springframework.org/schema/integration/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/jms
+			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+
+	<si:channel id="requestChannel">
+		<si:queue capacity="10"/>
+	</si:channel>
+
+	<jms:inbound-gateway id="gatewayWithConcurrentConsumers"
+		 			 	 connection-factory="testConnectionFactory"
+		 			 	 request-channel="requestChannel"
+		 			 	 request-destination-name="testQueue"
+		 			 	 request-pub-sub-domain="false"
+						 auto-startup="false"
+		 			 	 concurrent-consumers="3"/>
+
+	<jms:inbound-gateway id="gatewayWithMaxConcurrentConsumers"
+				 	 	 connection-factory="testConnectionFactory"
+		 			 	 request-channel="requestChannel"
+		 			 	 request-destination-name="testTopic"
+		 			 	 request-pub-sub-domain="true"
+						 auto-startup="false"
+		 				 max-concurrent-consumers="22"/>
+
+	<jms:inbound-gateway id="gatewayWithMaxMessagesPerTask"
+					 	 connection-factory="testConnectionFactory"
+		 			 	 request-channel="requestChannel"
+		 			 	 request-destination-name="testQueue"
+		 			 	 request-pub-sub-domain="false"
+						 auto-startup="false"
+		 			 	 max-messages-per-task="99"/>
+
+	<jms:inbound-gateway id="gatewayWithReceiveTimeout"
+					 	 connection-factory="testConnectionFactory"
+		 		   	 	 request-channel="requestChannel"
+		 			 	 request-destination-name="testTopic"
+		 			 	 request-pub-sub-domain="true"
+						 auto-startup="false"
+		 				 receive-timeout="1111"/>
+
+	<jms:inbound-gateway id="gatewayWithRecoveryInterval"
+					 	 connection-factory="testConnectionFactory"
+		 		   	 	 request-channel="requestChannel"
+		 			 	 request-destination-name="testTopic"
+		 			 	 request-pub-sub-domain="true"
+						 auto-startup="false"
+		 				 recovery-interval="2222"/>
+
+	<jms:inbound-gateway id="gatewayWithIdleTaskExecutionLimit"
+					 	 connection-factory="testConnectionFactory"
+		 		   	 	 request-channel="requestChannel"
+		 			 	 request-destination-name="testTopic"
+		 			 	 request-pub-sub-domain="true"
+						 auto-startup="false"
+		 				 idle-task-execution-limit="7"/>
+
+	<jms:inbound-gateway id="gatewayWithIdleConsumerLimit"
+					 	 connection-factory="testConnectionFactory"
+		 		   	 	 request-channel="requestChannel"
+		 			 	 request-destination-name="testTopic"
+		 			 	 request-pub-sub-domain="true"
+						 auto-startup="false"
+		 				 idle-consumer-limit="33"/>
+
+	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.jms.StubConnection">
+				<constructor-arg value="message-driven-test"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration/file"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:integration="http://www.springframework.org/schema/integration"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/file
+			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+
+	<inbound-channel-adapter id="inputDirPoller"
+							 directory="${java.io.tmpdir}"
+							 filter="filter"
+							 comparator="testComparator"
+							 auto-startup="false">
+		<integration:poller fixed-rate="5000">
+		    <integration:transactional synchronization-factory="syncFactory"/>
+		</integration:poller>
+	</inbound-channel-adapter>
+
+	<integration:channel id="successChannel" />
+
+	<beans:bean id="filter" class="org.springframework.integration.file.config.FileListFilterFactoryBean"/>
+
+	<beans:bean id="compositeFilter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
+		<beans:constructor-arg>
+			<beans:list/>
+		</beans:constructor-arg>
+	</beans:bean>
+
+	<beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+
+	<beans:bean id="testComparator"
+				class="org.springframework.integration.file.config.FileInboundChannelAdapterParserTests$TestComparator"/>
+				
+	<beans:bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
+	
+	<beans:bean id="syncFactory" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
+		<beans:constructor-arg>
+			<beans:bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
+				<beans:property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
+				<beans:property name="afterCommitChannel" ref="successChannel"/>
+				<beans:property name="afterRollbackExpression" value="#{new org.springframework.expression.common.LiteralExpression('foo')}"/>
+				<beans:property name="afterRollbackChannel" ref="nullChannel"/>
+			</beans:bean>
+		</beans:constructor-arg>
+	</beans:bean>
+
+</beans:beans>

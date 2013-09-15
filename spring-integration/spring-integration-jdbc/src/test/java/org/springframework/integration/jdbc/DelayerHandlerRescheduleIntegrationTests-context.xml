@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns="http://www.springframework.org/schema/integration"
+			 xmlns:p="http://www.springframework.org/schema/p"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<beans:bean id="messageStore"
+				class="org.springframework.integration.jdbc.DelayerHandlerRescheduleIntegrationTests$TestJdbcMessageStore"/>
+
+	<beans:bean id="transactionManager"
+				class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+				p:dataSource="#{T (org.springframework.integration.jdbc.DelayerHandlerRescheduleIntegrationTests).dataSource}"/>
+
+	<channel id="output">
+		<queue/>
+	</channel>
+
+	<delayer id="#{T (org.springframework.integration.jdbc.DelayerHandlerRescheduleIntegrationTests).DELAYER_ID}"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="500"
+			 message-store="messageStore"/>
+
+	<channel id="transactionalDelayerOutput"/>
+
+	<delayer id="transactionalDelayer"
+			 input-channel="transactionalDelayerInput"
+			 output-channel="transactionalDelayerOutput"
+			 default-delay="50"
+			 message-store="messageStore">
+		<transactional/>
+	</delayer>
+
+	<service-activator input-channel="transactionalDelayerOutput" ref="exceptionHandler"/>
+
+	<beans:bean id="exceptionHandler"
+				class="org.springframework.integration.jdbc.DelayerHandlerRescheduleIntegrationTests$ExceptionMessageHandler"/>
+
+</beans:beans>

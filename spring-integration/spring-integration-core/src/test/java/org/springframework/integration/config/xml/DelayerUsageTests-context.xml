@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="inputA"/>
+
+	<channel id="outputA">
+		<queue />
+	</channel>
+
+	<delayer id="delayerWithDefaultScheduler"
+			 input-channel="inputA"
+			 output-channel="outputA"
+			 default-delay="1000"
+			 delay-header-name="foo"
+			 order="99"
+			 send-timeout="1000"/>
+
+	<channel id="inputB"/>
+	<channel id="outputB"/>
+	<channel id="outputB1">
+		<queue />
+	</channel>
+
+	<delayer id="delayerWithCustomScheduler"
+			 input-channel="inputB"
+			 output-channel="outputB"
+			 default-delay="1000"
+			 send-timeout="20000"
+			 scheduler="multiThreadScheduler"/>
+
+	<chain input-channel="delayerInsideChain" output-channel="outputA">
+		<transformer expression="payload.toUpperCase()"/>
+		<delayer id="delayerInsideChain" default-delay="1000">
+			<advice-chain>
+				<beans:bean class="org.springframework.integration.config.xml.TestAdviceBean">
+					<beans:constructor-arg value="0"/>
+				</beans:bean>
+			</advice-chain>
+		</delayer>
+		<transformer expression="payload.toLowerCase()"/>
+	</chain>
+
+	<beans:bean id="multiThreadScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler"
+				p:poolSize="5"
+				p:waitForTasksToCompleteOnShutdown="true"/>
+
+	<service-activator input-channel="outputB" output-channel="outputB1" method="processMessage" ref="sampleHandler"/>
+
+	<beans:bean id="sampleHandler" class="org.springframework.integration.config.xml.DelayerUsageTests$SampleService"/>
+
+	<channel id="inputC"/>
+
+	<channel id="outputC">
+		<queue/>
+	</channel>
+
+	<beans:bean id="time" class="java.util.Calendar" factory-method="getInstance"/>
+
+	<delayer id="delayerExpression" input-channel="inputC" output-channel="outputC" expression="new java.util.Date(@time.timeInMillis + 5000)"/>
+
+
+</beans:beans>

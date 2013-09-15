@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="wireTapChannel">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="noSelectors">
+		<queue capacity="10"/>
+		<interceptors>
+			<wire-tap channel="wireTapChannel"/>
+		</interceptors>
+	</channel>
+
+	<channel id="withId">
+		<queue capacity="10"/>
+		<interceptors>
+			<wire-tap id="wireTap" channel="wireTapChannel"/>
+		</interceptors>
+	</channel>
+
+	<channel id="accepting">
+		<queue capacity="10"/>
+		<interceptors>
+			<wire-tap channel="wireTapChannel" selector="acceptingSelector"/>
+		</interceptors>
+	</channel>
+
+	<channel id="rejecting">
+		<queue capacity="10"/>
+		<interceptors>
+			<wire-tap channel="wireTapChannel" selector="rejectingSelector"/>
+		</interceptors>
+	</channel>
+
+	<channel id="timeout">
+		<queue capacity="10"/>
+		<interceptors>
+			<wire-tap channel="wireTapChannel" timeout="1234"/>
+		</interceptors>
+	</channel>
+
+	<beans:bean id="acceptingSelector" class="org.springframework.integration.config.TestSelector">
+		<beans:constructor-arg value="true"/>
+	</beans:bean>
+
+	<beans:bean id="rejectingSelector" class="org.springframework.integration.config.TestSelector">
+		<beans:constructor-arg value="false"/>
+	</beans:bean>
+
+</beans:beans>

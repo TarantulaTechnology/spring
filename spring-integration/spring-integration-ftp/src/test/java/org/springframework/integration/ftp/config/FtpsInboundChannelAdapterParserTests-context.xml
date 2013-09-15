@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+
+	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpsSessionFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="oleg"/>
+		<property name="password" value="password"/>
+		<property name="clientMode" value="0"/>
+		<property name="fileType" value="2"/>
+	</bean>
+
+	<int-ftp:inbound-channel-adapter id="ftpInbound"
+				channel="ftpChannel" 
+				session-factory="ftpSessionFactory"
+				charset="UTF-8"
+				auto-create-local-directory="true"
+				delete-remote-files="true"
+				local-directory="."
+				remote-directory="foo/bar"
+				temporary-file-suffix=".foo"
+				filter="entryListFilter">
+			<int:poller fixed-rate="1000"/>
+	</int-ftp:inbound-channel-adapter>
+	
+	<int-ftp:inbound-channel-adapter 
+				channel="ftpChannel" 
+				session-factory="ftpSessionFactory"
+				charset="UTF-8"
+				auto-create-local-directory="true"
+				delete-remote-files="true"
+				filename-regex="[0-9]+\.txt"
+				local-directory="."
+				remote-directory="foo/bar">
+			<int:poller fixed-rate="1000"/>
+	</int-ftp:inbound-channel-adapter>
+				
+	<int:channel id="ftpChannel"/>
+	
+	<bean id="entryListFilter" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
+	</bean>
+
+</beans>

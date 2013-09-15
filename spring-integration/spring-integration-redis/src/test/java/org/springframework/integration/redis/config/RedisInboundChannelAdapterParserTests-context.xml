@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
+
+	<int-redis:inbound-channel-adapter
+		id="adapter" topics="foo, bar" channel="receiveChannel" error-channel="testErrorChannel"
+		message-converter="testConverter" 
+		serializer="serializer"/>
+
+	<int:channel id="receiveChannel">
+		<int:queue />
+	</int:channel>
+
+	<int:channel id="testErrorChannel" />
+
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="port" value="7379" />
+	</bean>
+
+	<bean id="testConverter"
+		class="org.springframework.integration.redis.config.RedisInboundChannelAdapterParserTests$TestMessageConverter" />
+
+	<int-redis:inbound-channel-adapter
+		id="autoChannel" topics="foo, bar" error-channel="testErrorChannel"
+		message-converter="testConverter" />
+		
+	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+
+	<int:bridge input-channel="autoChannel" output-channel="nullChannel"/>
+
+</beans>

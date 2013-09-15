@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="channel"/>
+	
+	<channel id="channelB">
+		<queue capacity="2"/>
+	</channel>
+
+	<channel id="channelC"/>
+
+	<outbound-channel-adapter id="adapter" channel="channel" ref="bean" method="out" order="99" auto-startup="false"/>
+
+	<beans:bean id="bean"
+		class="org.springframework.integration.config.xml.DefaultOutboundChannelAdapterParserTests$TestBean"/>
+
+	<outbound-channel-adapter id="adapterB" channel="channelB" method="out" order="99" auto-startup="false">
+		<beans:bean class="org.springframework.integration.config.xml.DefaultOutboundChannelAdapterParserTests$TestBean"/>
+		<poller task-executor="executor" max-messages-per-poll="5" fixed-delay="20" /> 
+	</outbound-channel-adapter>
+
+	<task:executor id="executor" pool-size="5" /> 
+
+	<outbound-channel-adapter id="adapterC" channel="channelC" order="99">
+		<beans:bean class="org.springframework.integration.config.TestConsumer"/>
+	</outbound-channel-adapter>
+
+</beans:beans>

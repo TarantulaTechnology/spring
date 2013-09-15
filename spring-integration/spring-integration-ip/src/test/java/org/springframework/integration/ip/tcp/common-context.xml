@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:ip="http://www.springframework.org/schema/integration/ip"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/ip
+			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
+
+	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
+
+	<bean id="crLfSerializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer" />
+	<bean id="stxEtxSerializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer" />
+	<bean id="lengthHeaderSerializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer" />
+	<bean id="javaSerializer" class="org.springframework.core.serializer.DefaultSerializer" />
+	<bean id="javaDeserializer" class="org.springframework.core.serializer.DefaultDeserializer" />
+
+	<ip:tcp-connection-factory id="crLfServer"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(7000)}"
+		serializer="crLfSerializer"
+		deserializer="crLfSerializer"/>
+
+	<ip:tcp-connection-factory id="stxEtxServer"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(7100)}"
+		serializer="stxEtxSerializer"
+		deserializer="stxEtxSerializer"/>
+
+	<ip:tcp-connection-factory id="lengthHeaderServer"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(7200)}"
+		serializer="lengthHeaderSerializer"
+		deserializer="lengthHeaderSerializer"/>
+
+	<ip:tcp-connection-factory id="javaSerialServer"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(7300)}"
+		serializer="javaSerializer"
+		deserializer="javaDeserializer"/>
+
+	<ip:tcp-connection-factory id="crLfClient"
+		type="client"
+		host="localhost"
+		port="#{crLfServer.port}"
+		serializer="crLfSerializer"
+		deserializer="crLfSerializer"/>
+
+	<ip:tcp-connection-factory id="stxEtxClient"
+		type="client"
+		host="localhost"
+		port="#{stxEtxServer.port}"
+		serializer="stxEtxSerializer"
+		deserializer="stxEtxSerializer"/>
+
+	<ip:tcp-connection-factory id="lengthHeaderClient"
+		type="client"
+		host="localhost"
+		port="#{lengthHeaderServer.port}"
+		serializer="lengthHeaderSerializer"
+		deserializer="lengthHeaderSerializer"/>
+
+	<ip:tcp-connection-factory id="javaSerialClient"
+		type="client"
+		host="localhost"
+		port="#{javaSerialServer.port}"
+		serializer="javaSerializer"
+		deserializer="javaDeserializer"/>
+
+	<ip:tcp-connection-factory id="crLfServerNio"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(7400)}"
+		serializer="crLfSerializer"
+		deserializer="crLfSerializer"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="stxEtxServerNio"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(7500)}"
+		serializer="stxEtxSerializer"
+		deserializer="stxEtxSerializer"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="lengthHeaderServerNio"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(7600)}"
+		serializer="lengthHeaderSerializer"
+		deserializer="lengthHeaderSerializer"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="javaSerialServerNio"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(7700)}"
+		serializer="javaSerializer"
+		deserializer="javaDeserializer"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="crLfClientNio"
+		type="client"
+		host="localhost"
+		port="#{crLfServer.port}"
+		serializer="crLfSerializer"
+		deserializer="crLfSerializer"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="stxEtxClientNio"
+		type="client"
+		host="localhost"
+		port="#{stxEtxServer.port}"
+		serializer="stxEtxSerializer"
+		deserializer="stxEtxSerializer"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="lengthHeaderClientNio"
+		type="client"
+		host="localhost"
+		port="#{lengthHeaderServer.port}"
+		serializer="lengthHeaderSerializer"
+		deserializer="lengthHeaderSerializer"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="javaSerialClientNio"
+		type="client"
+		host="localhost"
+		port="#{javaSerialServer.port}"
+		serializer="javaSerializer"
+		deserializer="javaDeserializer"
+		using-nio="true"/>
+
+</beans>

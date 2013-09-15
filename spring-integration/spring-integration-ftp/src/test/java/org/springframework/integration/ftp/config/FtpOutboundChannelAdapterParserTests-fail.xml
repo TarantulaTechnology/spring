@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+
+	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="oleg"/>
+		<property name="password" value="password"/>
+		<property name="clientMode" value="0"/>
+		<property name="fileType" value="2"/>
+	</bean>
+
+	<int-ftp:outbound-channel-adapter id="ftpOutbound"
+				channel="ftpChannel" 
+				session-factory="ftpSessionFactory"
+				remote-directory="foo/bar"
+				temporary-remote-directory="baz/abc"
+				charset="UTF-8"
+				auto-create-directory="true"
+				remote-file-separator=""
+				temporary-file-suffix=".foo"
+				remote-filename-generator="fileNameGenerator"
+				order="23"/>
+				
+				
+	<int:publish-subscribe-channel id="ftpChannel"/>
+	
+	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+	</bean>
+</beans>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="adapterOutput">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="implementationOutput">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="discardOutput">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="discardAndExceptionOutput">
+		<queue capacity="1"/>
+	</channel>
+
+	<filter id="advised" ref="selectorBean" method="hasText" input-channel="adapterInput" output-channel="adapterOutput">
+		<request-handler-advice-chain discard-within-advice="false">
+			<beans:bean class="org.springframework.integration.config.FilterParserTests$FooFilter" />
+		</request-handler-advice-chain>
+	</filter>
+
+	<beans:bean id="selectorBean"
+		class="org.springframework.integration.config.FilterParserTests$TestSelectorBean"/>
+
+	<filter id="notAdvised" ref="selectorImpl" input-channel="implementationInput" output-channel="implementationOutput"/>
+
+	<filter ref="selectorImpl" input-channel="exceptionInput" output-channel="implementationOutput" throw-exception-on-rejection="true"/>
+
+	<beans:bean id="selectorImpl"
+		class="org.springframework.integration.config.FilterParserTests$TestSelectorImpl"/>
+
+	<filter ref="selectorBean"
+			method="hasText"
+			input-channel="discardInput"
+			output-channel="adapterOutput"
+			discard-channel="discardOutput"/>
+
+	<filter ref="selectorBean"
+			method="hasText"
+			input-channel="discardAndExceptionInput"
+			output-channel="adapterOutput"
+			discard-channel="discardAndExceptionOutput"
+			throw-exception-on-rejection="true"/>
+
+</beans:beans>

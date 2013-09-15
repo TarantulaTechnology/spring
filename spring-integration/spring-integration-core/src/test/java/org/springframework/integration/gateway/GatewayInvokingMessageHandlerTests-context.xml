@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:task="http://www.springframework.org/schema/task">
+	
+	<si:gateway id="simpleGateway"
+				default-request-channel="inputA" 
+				default-reply-channel="inputB"
+				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"/>
+				
+	<si:gateway id="gatewayWithError"
+				default-request-channel="routingChannel" 
+				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"/>
+
+	<si:gateway id="gatewayWithErrorAsync"
+				default-request-channel="routingChannel" 
+				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"/>
+	
+	<si:gateway id="gatewayWithErrorChannelAndTransformer"
+				default-request-channel="routingChannel" 
+				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"
+				error-channel="errorTransformationChannel"/>
+				
+	<si:router input-channel="routingChannel" expression="payload"/>			
+				
+	<si:service-activator input-channel="echoWithRuntimeExceptionChannel" method="echoWithRuntimeException">
+		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+	</si:service-activator>
+	
+	<si:channel id="echoWithErrorAsyncChannel">
+		<si:queue/>
+	</si:channel>
+	
+	<si:service-activator input-channel="echoWithErrorAsyncChannel" method="echoWithErrorAsync">
+		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+		<si:poller max-messages-per-poll="1" task-executor="executor" fixed-delay="100"/>
+	</si:service-activator>
+
+	<task:executor id="executor" pool-size="5"/>
+	
+	
+	<si:service-activator input-channel="echoWithMessagingExceptionChannel" method="echoWithMessagingException">
+		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+	</si:service-activator>
+	
+	<si:publish-subscribe-channel id="inputA" />
+	<si:publish-subscribe-channel id="inputB" />
+	<si:publish-subscribe-channel id="inputC" />
+
+	<si:chain input-channel="inputA" output-channel="inputB">
+		<si:header-enricher>
+			<si:header name="foo" value="foo" />
+		</si:header-enricher>
+		<si:service-activator method="echo">
+			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+		</si:service-activator>
+		<si:gateway request-channel="inputC"/>  
+	</si:chain>
+	
+	<si:chain input-channel="inputC">
+		<si:header-enricher>
+			<si:header name="name" value="oleg" />
+		</si:header-enricher>
+		<si:gateway request-channel="inputD"/> 
+		<si:service-activator method="echo">
+			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+		</si:service-activator>
+	</si:chain>
+	
+	<si:chain id="FOO" input-channel="inputD">
+		<si:header-enricher>
+			<si:header name="name" value="oleg" />
+		</si:header-enricher>
+		<si:service-activator method="echo">
+			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+		</si:service-activator>
+	</si:chain>
+
+	<si:transformer input-channel="errorTransformationChannel" ref="errorTransformer"/>
+	
+	<bean id="errorTransformer" class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SampleErrorTransformer"/>
+
+</beans>
